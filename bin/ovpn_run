@@ -10,8 +10,14 @@ fi
 
 set -e
 
+conf=$OPENVPN/openvpn.conf
+if [ -f "$OVPN/openvpn-${1}.conf" ]; then
+	conf=$OPENVPN/openvpn-${1}.conf
+	shift
+fi
+
 # Build runtime arguments array based on environment
-ARGS=("--config" "$OPENVPN/openvpn.conf")
+ARGS=("--config" "${conf}")
 
 source "$OPENVPN/ovpn_env.sh"
 

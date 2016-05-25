@@ -53,6 +53,7 @@ usage() {
     echo " -2    Enable two factor authentication using Google Authenticator."
     echo " -f    Set the fragment directive."
     echo " -e    Add extra server config"
+    echo " -o    Create config file with a specific suffix"
 }
 
 if [ "$DEBUG" == "1" ]; then
@@ -78,12 +79,13 @@ OVPN_TLS_CIPHER=''
 OVPN_CIPHER=''
 OVPN_AUTH=''
 OVPN_EXTRA_CONFIG=''
+OVPN_CONFIG_NAME=''
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
+while getopts ":a:e:o:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -91,6 +93,9 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
         e)
             OVPN_EXTRA_CONFIG="$OPTARG"
             ;;
+	o)
+            OVPN_CONFIG_NAME="$OPTARG"
+	    ;;
         C)
             OVPN_CIPHER="$OPTARG"
             ;;
@@ -197,6 +202,7 @@ fi
 export | grep OVPN_ > "$OVPN_ENV"
 
 conf=$OPENVPN/openvpn.conf
+[ -z "$OVPN_CONF_NAME" ] && conf="$OPENVPN/openvpn-${OVPN_CONF_NAME}.conf"
 if [ -f "$conf" ]; then
     bak=$conf.$(date +%s).bak
     echo "Backing up $conf -> $bak"
