@@ -1,24 +1,10 @@
 #!/bin/bash
 set -ex
 
-function rmContainer() {
-	name="${1}"
-	cid="$(docker ps -a -q --filter "name=${name}")"
-	if [ -n "${cid}" ]; then
-		echo "Removing container '${name}'..."
-		docker rm -f "${name}" > /dev/null
-	fi
-}
-
-rmContainer dual-data
-rmContainer ovpn-test-udp
-rmContainer ovpn-test-tcp
-
 OVPN_DATA=dual-data
 CLIENT_UDP=travis-client
 CLIENT_TCP=travis-client-tcp
-IMG=openvpn
-#TODO IMG=kylemanna/openvpn
+IMG=kylemanna/openvpn
 
 #
 # Create a docker container with the config data
@@ -50,15 +36,15 @@ docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT_U
 #
 # Fire up the server
 #
-#TODO sudo iptables -N DOCKER
-#TODO sudo iptables -I FORWARD -j DOCKER
+sudo iptables -N DOCKER
+sudo iptables -I FORWARD -j DOCKER
 
 # run in shell bg to get logs
 docker run --name "ovpn-test-udp" --volumes-from $OVPN_DATA --rm -p 1194:1194/udp --privileged $IMG &
 docker run --name "ovpn-test-tcp" --volumes-from $OVPN_DATA --rm -p 443:1194/tcp --privileged $IMG ovpn_run --proto tcp &
 
 #
-# Fire up a client in a containers since openvpn is disallowed by Travis-CI, don't NAT
+# Fire up a clients in a containers since openvpn is disallowed by Travis-CI, don't NAT
 # the host as it confuses itself:
 # "Incoming packet rejected from [AF_INET]172.17.42.1:1194[2], expected peer address: [AF_INET]10.240.118.86:1194"
 #
